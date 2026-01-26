@@ -9,7 +9,7 @@
         :root {
             --bg: #121418;
             --card: #1e2329;
-            --primary: #f0b90b; /* Amarillo tipo Binance */
+            --primary: #f0b90b; /* Amarillo Binance */
             --green: #0ecb81;
             --red: #f6465d;
             --text: #eaecef;
@@ -270,9 +270,9 @@
 
     <script>
         // ==========================================
-        // CONFIGURACIÓN: PEGA TU URL DE APPS SCRIPT
+        // TU URL ACTUALIZADA
         // ==========================================
-        const GOOGLE_SCRIPT_URL = 'TU_URL_AQUI'; 
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby80ENsqsE908o2AVYEujHuEAcUnC57ChoSqDMloszu5LCFZSDw3mHHvD-2lXn8Tu7T/exec'; 
 
         // Variables de Estado
         let dailyPnL = 0;
@@ -307,12 +307,13 @@
                     document.getElementById('tradeNotes').value += text;
                 };
             } else {
-                alert("Tu navegador no soporta dictado de voz.");
+                console.log("Dictado no soportado en este navegador");
             }
         }
 
         function toggleDictation() {
             if (recognition) recognition.start();
+            else alert("Usa Google Chrome para activar el dictado.");
         }
 
         // 2. Lógica del Modal
@@ -366,9 +367,11 @@
 
             const card = document.createElement('div');
             card.className = `trade-card ${amount >= 0 ? 'win' : 'loss'}`;
+            const timeString = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
             card.innerHTML = `
                 <div class="trade-info">
-                    <h4>${amount >= 0 ? 'PROFIT' : 'LOSS'}</h4>
+                    <h4>${amount >= 0 ? 'PROFIT' : 'LOSS'} <span style="font-size:0.7em; color:#666">(${timeString})</span></h4>
                     <p>${notes ? notes : 'Sin notas'}</p>
                 </div>
                 <div class="trade-amount" style="color: ${amount >= 0 ? 'var(--green)' : 'var(--red)'}">
@@ -380,10 +383,11 @@
 
         // 5. Conexión Google Sheets
         function sendToSheets(amount, notes) {
-            if (GOOGLE_SCRIPT_URL === 'TU_URL_AQUI' || GOOGLE_SCRIPT_URL === '') return;
+            const now = new Date();
+            const timestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
 
             const data = {
-                timestamp: new Date().toLocaleString(),
+                timestamp: timestamp,
                 resultado: amount,
                 nota: notes,
                 acumulado: dailyPnL
@@ -433,13 +437,9 @@
         function loadSettings() {
             const savedTP = localStorage.getItem('tp');
             const savedSL = localStorage.getItem('sl');
-            const savedPnL = localStorage.getItem('savedPnL');
 
             if (savedTP) document.getElementById('dailyTP').value = savedTP;
             if (savedSL) document.getElementById('dailySL').value = savedSL;
-            
-            // Opcional: Si quieres reiniciar el PnL cada día, comenta la siguiente linea
-            // if (savedPnL) { dailyPnL = parseFloat(savedPnL); updateDashboard(); }
         }
     </script>
 </body>
