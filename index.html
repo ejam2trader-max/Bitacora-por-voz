@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Trading Pro Multi-User</title>
+    <title>Trading Journal Elite</title>
     <link rel="manifest" href="manifest.json">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --bg: #0b0e11; --card: #1e2329; --primary: #f0b90b; --green: #0ecb81; --red: #f6465d; --text: #eaecef; --text-dim: #848e9c; }
+        :root { 
+            --bg: #0b0e11; --card: #1e2329; --text: #eaecef; --text-dim: #848e9c;
+            --green: #0ecb81; --red: #f6465d;
+            --primary: #f0b90b; 
+        }
         body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
 
         header { padding: 15px 20px; background: var(--card); border-bottom: 1px solid #333; }
         
-        /* Selector de Usuario */
-        .user-selector { margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; background: #2b3139; padding: 10px; border-radius: 10px; }
-        .user-selector select { background: transparent; border: none; color: var(--primary); font-weight: bold; font-size: 1rem; outline: none; cursor: pointer; }
+        .user-selector { margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; background: #2b3139; padding: 12px; border-radius: 12px; border: 1px solid #444; }
+        .user-selector select { background: transparent; border: none; color: var(--primary); font-weight: bold; font-size: 1.1rem; outline: none; cursor: pointer; }
 
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .goal-item { background: #2b3139; padding: 8px; border-radius: 8px; text-align: center; border: 1px solid #444; }
+        .goal-item { background: #2b3139; padding: 8px; border-radius: 8px; text-align: center; }
         .goal-item label { font-size: 0.65rem; color: var(--text-dim); display: block; margin-bottom: 3px; }
         .goal-item input { background: transparent; border: none; color: white; width: 80%; text-align: center; font-weight: bold; font-size: 1rem; outline: none; }
         
         .main-balance { text-align: center; padding: 5px 0; }
-        .balance-val { font-size: 3.8rem; font-weight: bold; margin-top: 5px; transition: color 0.3s; }
+        .balance-val { font-size: 3.8rem; font-weight: bold; margin-top: 5px; }
 
         .history { height: calc(100vh - 300px); overflow-y: auto; padding: 15px; }
-        .trade-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .trade-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
 
-        /* Modales y Alarmas */
         .modal, .alarm-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; }
         .modal { background: rgba(0,0,0,0.95); align-items: flex-end; }
         .modal-content { background: var(--card); width: 100%; padding: 30px; border-radius: 25px 25px 0 0; box-sizing: border-box; }
@@ -36,7 +38,7 @@
 
         select, input, textarea { width: 100%; background: #2b3139; border: 1px solid #444; color: white; padding: 14px; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; font-size: 1rem; outline: none; }
         .btn-save { background: var(--primary); color: black; width: 100%; padding: 18px; border-radius: 12px; border: none; font-weight: bold; font-size: 1.2rem; cursor: pointer; }
-        .fab { position: fixed; bottom: 30px; right: 25px; background: var(--primary); width: 65px; height: 65px; border-radius: 50%; border: none; font-size: 28px; box-shadow: 0 5px 20px rgba(240, 185, 11, 0.3); }
+        .fab { position: fixed; bottom: 30px; right: 25px; background: var(--primary); color: #000; width: 65px; height: 65px; border-radius: 50%; border: none; font-size: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
@@ -45,12 +47,12 @@
 
     <header>
         <div class="user-selector">
-            <span style="font-size: 0.8rem; color: var(--text-dim);">PERFIL:</span>
+            <span style="font-size: 0.8rem; color: var(--text-dim);">TRADER:</span>
             <select id="userProfile" onchange="switchUser()">
-                <option value="user1">Eliezer</option>
-                <option value="user2">Mary</option>
+                <option value="eliezer">ELIEZER</option>
+                <option value="mary">MARY</option>
             </select>
-            <i class="fas fa-user-circle" style="color: var(--primary);"></i>
+            <i class="fas fa-chart-line" id="userIcon" style="color: var(--primary);"></i>
         </div>
 
         <div class="goals-grid">
@@ -67,57 +69,73 @@
     <button class="fab" onclick="document.getElementById('entryModal').style.display='flex'"><i class="fas fa-plus"></i></button>
 
     <div class="alarm-overlay" id="alarmScreen">
-        <i class="fas fa-hand-paper" style="font-size: 5rem; margin-bottom: 20px;"></i>
-        <h1 style="font-size: 2.5rem; margin: 0;">STOP OPERATIVA</h1>
-        <p id="alarmMessage" style="font-size: 1.2rem;"></p>
-        <button onclick="stopAlarm()" style="background:white; padding:15px 50px; border-radius:30px; border:none; font-weight:bold; margin-top:30px; font-size: 1.1rem;">ENTENDIDO</button>
+        <i class="fas fa-stop-circle" style="font-size: 5rem; margin-bottom: 20px;"></i>
+        <h1 style="font-size: 2.5rem; margin: 0;">PLAN COMPLETADO</h1>
+        <p id="alarmMessage" style="font-size: 1.2rem; margin: 15px;"></p>
+        <button onclick="stopAlarm()" style="background:white; padding:15px 50px; border-radius:30px; border:none; font-weight:bold; margin-top:20px;">ENTENDIDO</button>
     </div>
 
     <div class="modal" id="entryModal">
         <div class="modal-content">
             <select id="activo">
-                <option value="" disabled selected>SELECCIONA ACTIVO</option>
-                <optgroup label="BOOM"><option>BOOM 300</option><option>BOOM 500</option><option>BOOM 1000</option></optgroup>
-                <optgroup label="CRASH"><option>CRASH 300</option><option>CRASH 500</option><option>CRASH 1000</option></optgroup>
+                <option value="" disabled selected>ELEGIR ÍNDICE</option>
+                <optgroup label="BOOM">
+                    <option>BOOM 150</option>
+                    <option>BOOM 300</option>
+                    <option>BOOM 500</option>
+                    <option>BOOM 600</option>
+                    <option>BOOM 900</option>
+                    <option>BOOM 1000</option>
+                </optgroup>
+                <optgroup label="CRASH">
+                    <option>CRASH 150</option>
+                    <option>CRASH 300</option>
+                    <option>CRASH 500</option>
+                    <option>CRASH 600</option>
+                    <option>CRASH 900</option>
+                    <option>CRASH 1000</option>
+                </optgroup>
             </select>
             <input type="number" id="monto" placeholder="Resultado $">
-            <textarea id="nota" rows="3" placeholder="Notas del trade..."></textarea>
-            <button class="btn-save" id="saveBtn" onclick="saveTrade()">GUARDAR REGISTRO</button>
-            <button onclick="document.getElementById('entryModal').style.display='none'" style="background:none; border:none; color:var(--text-dim); width:100%; margin-top:15px;">CANCELAR</button>
+            <textarea id="nota" rows="3" placeholder="Dictado o notas..."></textarea>
+            <button class="btn-save" id="saveBtn" onclick="saveTrade()">GUARDAR EN BITÁCORA</button>
+            <button onclick="document.getElementById('entryModal').style.display='none'" style="background:none; border:none; color:var(--text-dim); width:100%; margin-top:15px;">Regresar</button>
         </div>
     </div>
 
     <script>
-        // MAPEO DE URLs PROPORCIONADAS
         const CONFIG = {
-            user1: { url: 'https://script.google.com/macros/s/AKfycbx3EiLFZ_-P83iGY79YIIV9FKzLsHlkZSXEb2hjwzNi0GfxU488W6c5QkLEOAMoV-wP/exec' },
-            user2: { url: 'https://script.google.com/macros/s/AKfycbwUW18RJggodO8THqnWe1zrLkN77r8FyKxhRqPmfMz3h6MD9Ywab17FmqeJ7gR_eGIItg/exec' }
+            eliezer: { 
+                url: 'https://script.google.com/macros/s/AKfycbx3EiLFZ_-P83iGY79YIIV9FKzLsHlkZSXEb2hjwzNi0GfxU488W6c5QkLEOAMoV-wP/exec',
+                color: '#f0b90b' 
+            },
+            mary: { 
+                url: 'https://script.google.com/macros/s/AKfycbwUW18RJggodO8THqnWe1zrLkN77r8FyKxhRqPmfMz3h6MD9Ywab17FmqeJ7gR_eGIItg/exec',
+                color: '#bb86fc' 
+            }
         };
 
-        let activeUser = 'user1';
-        let stats = { profit: 0 };
+        let activeUser = 'eliezer';
+        let sessionProfit = 0;
         const alarmSound = document.getElementById('alarmAudio');
 
         window.onload = () => {
-            activeUser = localStorage.getItem('activeUser') || 'user1';
+            activeUser = localStorage.getItem('lastUser') || 'eliezer';
             document.getElementById('userProfile').value = activeUser;
-            loadUserData();
+            switchUser(false);
             if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
         };
 
-        function switchUser() {
+        function switchUser(showMsg = true) {
             activeUser = document.getElementById('userProfile').value;
-            localStorage.setItem('activeUser', activeUser);
-            loadUserData();
-            document.getElementById('historyList').innerHTML = ''; // Limpiar vista de sesión previa
-            alert("Perfil de " + activeUser.toUpperCase() + " cargado.");
-        }
-
-        function loadUserData() {
+            localStorage.setItem('lastUser', activeUser);
+            document.documentElement.style.setProperty('--primary', CONFIG[activeUser].color);
             document.getElementById('dailyTP').value = localStorage.getItem(activeUser + '_tp') || "";
             document.getElementById('dailySL').value = localStorage.getItem(activeUser + '_sl') || "";
-            stats.profit = 0; // Reiniciamos profit visual para la nueva sesión
+            sessionProfit = 0;
             updateUI();
+            document.getElementById('historyList').innerHTML = '';
+            if(showMsg) alert("Bienvenido, " + activeUser.toUpperCase());
         }
 
         function updateGoals() {
@@ -130,9 +148,9 @@
             const btn = document.getElementById('saveBtn');
             const monto = parseFloat(document.getElementById('monto').value) || 0;
             const activo = document.getElementById('activo').value;
-            if(!activo) return alert("Selecciona un activo");
+            if(!activo) return alert("Selecciona activo");
             
-            btn.disabled = true; btn.innerText = "ENVIANDO...";
+            btn.disabled = true; btn.innerText = "SINCRO...";
 
             try {
                 await fetch(CONFIG[activeUser].url, {
@@ -143,20 +161,20 @@
                     })
                 });
 
-                stats.profit += monto;
+                sessionProfit += monto;
                 updateHistory(activo, monto);
                 checkRisk();
                 document.getElementById('entryModal').style.display = 'none';
                 document.getElementById('monto').value = "";
                 document.getElementById('nota').value = "";
             } catch (e) { alert("Error de conexión"); }
-            finally { btn.disabled = false; btn.innerText = "GUARDAR REGISTRO"; }
+            finally { btn.disabled = false; btn.innerText = "GUARDAR EN BITÁCORA"; }
         }
 
         function updateUI() {
             const display = document.getElementById('sessionBalance');
-            display.innerText = `$${stats.profit.toFixed(2)}`;
-            display.style.color = stats.profit >= 0 ? 'var(--green)' : 'var(--red)';
+            display.innerText = `$${sessionProfit.toFixed(2)}`;
+            display.style.color = sessionProfit >= 0 ? 'var(--green)' : 'var(--red)';
         }
 
         function updateHistory(asset, val) {
@@ -169,11 +187,10 @@
         }
 
         function checkRisk() {
-            const tp = parseFloat(document.getElementById(activeUser + '_tp') || document.getElementById('dailyTP').value);
-            const sl = parseFloat(document.getElementById(activeUser + '_sl') || document.getElementById('dailySL').value);
-            
-            if (tp && stats.profit >= tp) triggerAlarm(true, `META DIARIA ALCANZADA: +$${tp}`);
-            else if (sl && stats.profit <= (sl * -1)) triggerAlarm(false, `LÍMITE DE PÉRDIDA TOCADO: -$${sl}`);
+            const tp = parseFloat(document.getElementById('dailyTP').value);
+            const sl = parseFloat(document.getElementById('dailySL').value);
+            if (tp && sessionProfit >= tp) triggerAlarm(true, "Meta diaria superada");
+            else if (sl && sessionProfit <= (sl * -1)) triggerAlarm(false, "Límite de pérdida alcanzado");
         }
 
         function triggerAlarm(isWin, msg) {
