@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Trading Journal Pro</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #121418;
@@ -19,7 +20,7 @@
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Nunito', sans-serif; /* Fuente amable */
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -58,6 +59,7 @@
             border-radius: 6px;
             box-sizing: border-box;
             text-align: center;
+            font-family: 'Nunito', sans-serif;
         }
 
         /* --- DASHBOARD --- */
@@ -160,6 +162,7 @@
             text-transform: uppercase;
             font-weight: bold;
             box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
         }
 
         .amount-input {
@@ -172,6 +175,7 @@
             text-align: center;
             margin-bottom: 20px;
             outline: none;
+            font-family: 'Nunito', sans-serif;
         }
         
         .mic-container {
@@ -209,6 +213,7 @@
             resize: none;
             height: 60px;
             margin-top: 10px;
+            font-family: 'Nunito', sans-serif;
         }
 
         .action-buttons {
@@ -290,9 +295,9 @@
 
     <script>
         // ===============================================
-        // URL ACTUALIZADA CON TU NUEVO ID:
+        // URL ACTUALIZADA:
         // ===============================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9Yya7r6Pcg_BIuUt0AnWi61wdyyqdniE7bhPcCkAHYjKjCDoFnyQDYGh9L4_LpQIH/exec'; 
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxepd_CzJY9Trk1Ubz_oEcsHQ5vw9Xtd1tVFIuI57SIKPV9FelccZQM_Wzoc_YktMs2/exec'; 
 
         let dailyPnL = 0;
         let recognition;
