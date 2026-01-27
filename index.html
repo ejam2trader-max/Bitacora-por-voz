@@ -93,6 +93,13 @@
 
         .trade-info h4 { margin: 0 0 5px 0; font-size: 1rem; }
         .trade-info p { margin: 0; color: var(--text-dim); font-size: 0.85rem; }
+        
+        .asset-tag {
+            background: #333; padding: 2px 6px; border-radius: 4px; 
+            font-size: 0.75rem; color: var(--primary); margin-right: 5px;
+            text-transform: uppercase;
+        }
+
         .trade-amount { font-weight: bold; font-size: 1.1rem; }
 
         /* --- FAB BUTTON (Botón Flotante) --- */
@@ -124,7 +131,7 @@
             backdrop-filter: blur(5px);
             z-index: 100;
             justify-content: center;
-            align-items: flex-end; /* Mobile style: bottom sheet */
+            align-items: flex-end; 
         }
 
         .modal-content {
@@ -140,6 +147,20 @@
         @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
 
         .form-title { margin-top: 0; text-align: center; color: var(--primary); }
+
+        /* Input de Activo */
+        .asset-input {
+            width: 100%;
+            background: #2b3139;
+            border: 1px solid #444;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
 
         .amount-input {
             width: 100%;
@@ -202,7 +223,7 @@
 
         @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
 
-        /* Notificación de Alarma */
+        /* Alarma */
         .alarm-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(246, 70, 93, 0.9); z-index: 200;
@@ -237,13 +258,13 @@
         </div>
     </div>
 
-    <button class="fab" onclick="openModal()">
-        <i class="fas fa-plus"></i>
-    </button>
+    <button class="fab" onclick="openModal()"><i class="fas fa-plus"></i></button>
 
     <div class="modal-overlay" id="modal">
         <div class="modal-content">
             <h3 class="form-title">Registrar Trade</h3>
+            
+            <input type="text" class="asset-input" id="tradeAsset" placeholder="ACTIVO (ej. CRASH 500)">
             
             <input type="number" class="amount-input" id="tradeAmount" placeholder="$0.00" step="0.01">
             
@@ -253,7 +274,6 @@
                 </button>
                 <textarea id="tradeNotes" placeholder="Toca el micrófono y dicta tu análisis..."></textarea>
             </div>
-
             <div class="action-buttons">
                 <button class="btn btn-cancel" onclick="closeModal()">Cancelar</button>
                 <button class="btn btn-save" onclick="saveTrade()">GUARDAR</button>
@@ -269,23 +289,21 @@
     </div>
 
     <script>
-        // ==========================================
-        // TU URL ACTUALIZADA
-        // ==========================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby80ENsqsE908o2AVYEujHuEAcUnC57ChoSqDMloszu5LCFZSDw3mHHvD-2lXn8Tu7T/exec'; 
+        // ===============================================
+        // URL ACTUALIZADA CON TU NUEVO ID:
+        // ===============================================
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8uARaYtc0rHPC-i52HdIX0Anp8aaTDktYCgesUiFplWadWUT8J2iWGk-TOjgQ6HqS/exec'; 
 
-        // Variables de Estado
         let dailyPnL = 0;
         let recognition;
         let alarmAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
 
-        // Inicialización
         document.addEventListener('DOMContentLoaded', () => {
             loadSettings();
             initVoice();
         });
 
-        // 1. Lógica de Voz
+        // 1. VOZ
         function initVoice() {
             if ('webkitSpeechRecognition' in window) {
                 recognition = new webkitSpeechRecognition();
@@ -296,82 +314,76 @@
                     document.getElementById('micBtn').classList.add('listening');
                     document.getElementById('tradeNotes').placeholder = "Escuchando...";
                 };
-                
                 recognition.onend = () => {
                     document.getElementById('micBtn').classList.remove('listening');
                     document.getElementById('tradeNotes').placeholder = "Dictado finalizado.";
                 };
-
                 recognition.onresult = (event) => {
-                    const text = event.results[0][0].transcript;
-                    document.getElementById('tradeNotes').value += text;
+                    document.getElementById('tradeNotes').value += event.results[0][0].transcript;
                 };
-            } else {
-                console.log("Dictado no soportado en este navegador");
             }
         }
 
         function toggleDictation() {
             if (recognition) recognition.start();
-            else alert("Usa Google Chrome para activar el dictado.");
+            else alert("Usa Chrome para activar voz");
         }
 
-        // 2. Lógica del Modal
+        // 2. MODAL
         function openModal() {
             document.getElementById('modal').style.display = 'flex';
-            document.getElementById('tradeAmount').focus();
+            document.getElementById('tradeAsset').focus();
         }
 
         function closeModal() {
             document.getElementById('modal').style.display = 'none';
+            document.getElementById('tradeAsset').value = '';
             document.getElementById('tradeAmount').value = '';
             document.getElementById('tradeNotes').value = '';
         }
 
-        // 3. Guardar Trade (Núcleo)
+        // 3. GUARDAR (CORE)
         function saveTrade() {
+            const asset = document.getElementById('tradeAsset').value.toUpperCase() || "SINTÉTICO";
             const amount = parseFloat(document.getElementById('tradeAmount').value);
             const notes = document.getElementById('tradeNotes').value;
 
             if (isNaN(amount)) return alert("Ingresa un monto válido");
 
-            // Actualizar variables
             dailyPnL += amount;
             updateDashboard();
-            addTradeToHistory(amount, notes);
-            
-            // Verificar SL/TP
+            addTradeToHistory(asset, amount, notes);
             checkRiskManagement();
-
-            // Enviar a Google Sheets
-            sendToSheets(amount, notes);
-
-            // Guardar localmente
-            localStorage.setItem('savedPnL', dailyPnL);
             
+            // Envío con el nuevo ID
+            sendToSheets(asset, amount, notes);
+
+            localStorage.setItem('savedPnL', dailyPnL);
             closeModal();
         }
 
-        // 4. Actualizar UI
+        // 4. UI
         function updateDashboard() {
             const display = document.getElementById('displayPnL');
             display.innerText = `$${dailyPnL.toFixed(2)}`;
             display.className = 'pnl-value ' + (dailyPnL >= 0 ? 'pos' : 'neg');
         }
 
-        function addTradeToHistory(amount, notes) {
+        function addTradeToHistory(asset, amount, notes) {
             const list = document.getElementById('tradeList');
-            
-            // Limpiar mensaje de "vacío" si es el primer trade
             if (list.innerText.includes("Sin operaciones")) list.innerHTML = '';
 
             const card = document.createElement('div');
             card.className = `trade-card ${amount >= 0 ? 'win' : 'loss'}`;
             const timeString = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
+            
             card.innerHTML = `
                 <div class="trade-info">
-                    <h4>${amount >= 0 ? 'PROFIT' : 'LOSS'} <span style="font-size:0.7em; color:#666">(${timeString})</span></h4>
+                    <h4>
+                        <span class="asset-tag">${asset}</span> 
+                        ${amount >= 0 ? 'PROFIT' : 'LOSS'} 
+                        <span style="font-size:0.7em; color:#666">(${timeString})</span>
+                    </h4>
                     <p>${notes ? notes : 'Sin notas'}</p>
                 </div>
                 <div class="trade-amount" style="color: ${amount >= 0 ? 'var(--green)' : 'var(--red)'}">
@@ -381,16 +393,17 @@
             list.prepend(card);
         }
 
-        // 5. Conexión Google Sheets
-        function sendToSheets(amount, notes) {
+        // 5. ENVIAR A SHEETS
+        function sendToSheets(asset, amount, notes) {
             const now = new Date();
             const timestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
 
             const data = {
-                timestamp: timestamp,
-                resultado: amount,
-                nota: notes,
-                acumulado: dailyPnL
+                timestamp: timestamp, 
+                activo: asset,        
+                resultado: amount,    
+                nota: notes,          
+                acumulado: dailyPnL   
             };
 
             fetch(GOOGLE_SCRIPT_URL, {
@@ -401,23 +414,19 @@
             }).catch(e => console.error("Error enviando:", e));
         }
 
-        // 6. Gestión de Riesgo (Alarmas)
+        // 6. GESTIÓN RIESGO
         function checkRiskManagement() {
             const tp = parseFloat(document.getElementById('dailyTP').value);
             const sl = parseFloat(document.getElementById('dailySL').value);
-
             if (tp && dailyPnL >= tp) triggerAlarm(true, `¡Meta de $${tp} Alcanzada!`);
-            if (sl && dailyPnL <= sl) triggerAlarm(false, `¡Límite de Pérdida ($${sl}) Tocado!`);
+            if (sl && dailyPnL <= sl) triggerAlarm(false, `¡Límite ($${sl}) Tocado!`);
         }
 
         function triggerAlarm(isWin, msg) {
             const screen = document.getElementById('alarmScreen');
-            const txt = document.getElementById('alarmMessage');
-            
+            document.getElementById('alarmMessage').innerText = msg;
             screen.style.display = 'flex';
             screen.className = isWin ? 'alarm-overlay win' : 'alarm-overlay';
-            txt.innerText = msg;
-            
             alarmAudio.loop = true;
             alarmAudio.play();
         }
@@ -428,7 +437,7 @@
             alarmAudio.currentTime = 0;
         }
 
-        // 7. Persistencia de Configuración
+        // 7. CONFIGURACIÓN
         function saveSettings() {
             localStorage.setItem('tp', document.getElementById('dailyTP').value);
             localStorage.setItem('sl', document.getElementById('dailySL').value);
@@ -437,7 +446,6 @@
         function loadSettings() {
             const savedTP = localStorage.getItem('tp');
             const savedSL = localStorage.getItem('sl');
-
             if (savedTP) document.getElementById('dailyTP').value = savedTP;
             if (savedSL) document.getElementById('dailySL').value = savedSL;
         }
