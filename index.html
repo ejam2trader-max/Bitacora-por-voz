@@ -10,7 +10,7 @@
         :root {
             --bg: #121418;
             --card: #1e2329;
-            --primary: #f0b90b; /* Amarillo Binance */
+            --primary: #f0b90b;
             --green: #0ecb81;
             --red: #f6465d;
             --text: #eaecef;
@@ -20,7 +20,7 @@
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Nunito', sans-serif; /* Fuente amable */
+            font-family: 'Nunito', sans-serif;
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -28,7 +28,6 @@
             flex-direction: column;
         }
 
-        /* --- HEADER & SETTINGS --- */
         header {
             padding: 20px;
             background: var(--card);
@@ -62,7 +61,6 @@
             font-family: 'Nunito', sans-serif;
         }
 
-        /* --- DASHBOARD --- */
         .dashboard {
             text-align: center;
             padding: 20px 0;
@@ -73,7 +71,6 @@
         .pnl-value.pos { color: var(--green); }
         .pnl-value.neg { color: var(--red); }
 
-        /* --- LISTA HISTORIAL --- */
         .history-container {
             flex: 1;
             overflow-y: auto;
@@ -104,7 +101,6 @@
 
         .trade-amount { font-weight: bold; font-size: 1.1rem; }
 
-        /* --- FAB BUTTON (Botón Flotante) --- */
         .fab {
             position: fixed;
             bottom: 30px;
@@ -125,7 +121,6 @@
         }
         .fab:active { transform: scale(0.9); }
 
-        /* --- MODAL --- */
         .modal-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -150,7 +145,6 @@
 
         .form-title { margin-top: 0; text-align: center; color: var(--primary); }
 
-        /* Input de Activo */
         .asset-input {
             width: 100%;
             background: #2b3139;
@@ -228,7 +222,6 @@
 
         @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
 
-        /* Alarma */
         .alarm-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(246, 70, 93, 0.9); z-index: 200;
@@ -268,11 +261,8 @@
     <div class="modal-overlay" id="modal">
         <div class="modal-content">
             <h3 class="form-title">Registrar Trade</h3>
-            
             <input type="text" class="asset-input" id="tradeAsset" placeholder="ACTIVO (ej. CRASH 500)">
-            
             <input type="number" class="amount-input" id="tradeAmount" placeholder="$0.00" step="0.01">
-            
             <div class="mic-container">
                 <button class="mic-btn" id="micBtn" onclick="toggleDictation()">
                     <i class="fas fa-microphone"></i>
@@ -295,9 +285,9 @@
 
     <script>
         // ===============================================
-        // URL ACTUALIZADA:
+        // URL ACTUALIZADA
         // ===============================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxepd_CzJY9Trk1Ubz_oEcsHQ5vw9Xtd1tVFIuI57SIKPV9FelccZQM_Wzoc_YktMs2/exec'; 
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8tdVBLjV4iaFmgf4k53NMiPQXb3v03uSgRDG8fNXuXrduRHMmvOTjWCYQTghyWRop/exec'; 
 
         let dailyPnL = 0;
         let recognition;
@@ -308,13 +298,11 @@
             initVoice();
         });
 
-        // 1. VOZ
         function initVoice() {
             if ('webkitSpeechRecognition' in window) {
                 recognition = new webkitSpeechRecognition();
                 recognition.lang = 'es-ES';
                 recognition.continuous = false;
-                
                 recognition.onstart = () => {
                     document.getElementById('micBtn').classList.add('listening');
                     document.getElementById('tradeNotes').placeholder = "Escuchando...";
@@ -334,7 +322,6 @@
             else alert("Usa Chrome para activar voz");
         }
 
-        // 2. MODAL
         function openModal() {
             document.getElementById('modal').style.display = 'flex';
             document.getElementById('tradeAsset').focus();
@@ -347,7 +334,6 @@
             document.getElementById('tradeNotes').value = '';
         }
 
-        // 3. GUARDAR (CORE)
         function saveTrade() {
             const asset = document.getElementById('tradeAsset').value.toUpperCase() || "SINTÉTICO";
             const amount = parseFloat(document.getElementById('tradeAmount').value);
@@ -359,15 +345,12 @@
             updateDashboard();
             addTradeToHistory(asset, amount, notes);
             checkRiskManagement();
-            
-            // Envío con el nuevo ID
             sendToSheets(asset, amount, notes);
 
             localStorage.setItem('savedPnL', dailyPnL);
             closeModal();
         }
 
-        // 4. UI
         function updateDashboard() {
             const display = document.getElementById('displayPnL');
             display.innerText = `$${dailyPnL.toFixed(2)}`;
@@ -398,7 +381,6 @@
             list.prepend(card);
         }
 
-        // 5. ENVIAR A SHEETS
         function sendToSheets(asset, amount, notes) {
             const now = new Date();
             const timestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
@@ -419,7 +401,6 @@
             }).catch(e => console.error("Error enviando:", e));
         }
 
-        // 6. GESTIÓN RIESGO
         function checkRiskManagement() {
             const tp = parseFloat(document.getElementById('dailyTP').value);
             const sl = parseFloat(document.getElementById('dailySL').value);
@@ -442,7 +423,6 @@
             alarmAudio.currentTime = 0;
         }
 
-        // 7. CONFIGURACIÓN
         function saveSettings() {
             localStorage.setItem('tp', document.getElementById('dailyTP').value);
             localStorage.setItem('sl', document.getElementById('dailySL').value);
