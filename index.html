@@ -3,197 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Trading Journal Pro</title>
+    <title>Trading Journal Elite</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0b0e11;
-            --card: #1e2329;
-            --primary: #f0b90b; /* Amarillo Binance */
-            --green: #0ecb81;
-            --red: #f6465d;
-            --text: #eaecef;
-            --text-dim: #848e9c;
-        }
+        :root { --bg: #0b0e11; --card: #1e2329; --primary: #f0b90b; --green: #0ecb81; --red: #f6465d; --text: #eaecef; --text-dim: #848e9c; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            margin: 0; padding: 0;
-            height: 100vh; display: flex; flex-direction: column;
-        }
+        /* --- HEADER: METAS DIARIAS --- */
+        header { padding: 20px; background: var(--card); border-bottom: 1px solid #333; }
+        .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .goal-item { background: #2b3139; padding: 8px; border-radius: 8px; text-align: center; }
+        .goal-item label { font-size: 0.65rem; color: var(--text-dim); display: block; margin-bottom: 3px; }
+        .goal-item input { background: transparent; border: none; color: white; width: 80%; text-align: center; font-weight: bold; font-size: 1rem; outline: none; }
+        
+        .main-balance { text-align: center; padding: 10px 0; }
+        .balance-label { font-size: 0.8rem; color: var(--text-dim); letter-spacing: 1px; }
+        .balance-val { font-size: 2.8rem; font-weight: bold; margin-top: 5px; transition: color 0.3s; }
 
-        /* --- HEADER --- */
-        header {
-            padding: 20px; background: var(--card);
-            text-align: center; border-bottom: 1px solid #333;
-        }
-        .session-pnl { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; }
-        .pnl-val { font-size: 2.2rem; font-weight: bold; color: var(--primary); margin: 5px 0; }
+        /* --- LISTA DE RESULTADOS --- */
+        .history { height: calc(100vh - 220px); overflow-y: auto; padding: 15px; }
+        .trade-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center; animation: slideIn 0.3s ease; }
+        .trade-card h4 { margin: 0; font-size: 0.95rem; color: var(--primary); text-transform: uppercase; }
+        .trade-card p { margin: 3px 0 0; font-size: 0.8rem; color: var(--text-dim); }
 
-        /* --- HISTORY --- */
-        .history {
-            flex: 1; overflow-y: auto; padding: 15px;
-        }
-        .trade-card {
-            background: var(--card); border-radius: 12px;
-            padding: 15px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-left: 4px solid var(--primary);
-            animation: fadeIn 0.3s ease;
-        }
-        .trade-info h4 { margin: 0; font-size: 1rem; color: var(--primary); }
-        .trade-info p { margin: 5px 0 0; font-size: 0.85rem; color: var(--text-dim); }
-        .trade-res { font-weight: bold; font-size: 1.1rem; }
-
-        /* --- FAB --- */
-        .fab {
-            position: fixed; bottom: 30px; right: 25px;
-            background: var(--primary); color: #000;
-            width: 60px; height: 60px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 24px; border: none; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(240, 185, 11, 0.3);
-        }
-
-        /* --- MODAL --- */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 100;
-            justify-content: center; align-items: flex-end;
-        }
-        .modal-content {
-            background: var(--card); width: 100%; max-width: 500px;
-            padding: 30px; border-radius: 20px 20px 0 0;
-            box-sizing: border-box; animation: slideUp 0.3s ease;
-        }
-
-        input, textarea {
-            width: 100%; background: #2b3139; border: 1px solid #444;
-            color: white; padding: 12px; border-radius: 8px;
-            margin-bottom: 15px; box-sizing: border-box; font-size: 1rem;
-        }
-        .btn-voice {
-            background: #333; color: var(--primary); border: 1px solid var(--primary);
-            width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 15px;
-            font-weight: bold; cursor: pointer;
-        }
-        .btn-save {
-            background: var(--primary); color: black; width: 100%;
-            padding: 15px; border-radius: 8px; border: none;
-            font-weight: bold; font-size: 1.1rem; cursor: pointer;
-        }
-        .listening { border-color: var(--red); color: var(--red); animation: pulse 1.5s infinite; }
-
-        @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
-        @keyframes fadeIn { from {opacity: 0; transform: translateY(10px);} to {opacity: 1; transform: translateY(0);} }
-        @keyframes pulse { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
+        /* --- BOTÓN Y MODAL --- */
+        .fab { position: fixed; bottom: 30px; right: 25px; background: var(--primary); width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 10; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; align-items: flex-end; }
+        .modal-content { background: var(--card); width: 100%; padding: 30px; border-radius: 25px 25px 0 0; box-sizing: border-box; }
+        
+        input[type="text"], input[type="number"], textarea { width: 100%; background: #2b3139; border: 1px solid #444; color: white; padding: 14px; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; font-size: 1rem; }
+        .btn-save { background: var(--primary); color: black; width: 100%; padding: 18px; border-radius: 12px; border: none; font-weight: bold; font-size: 1.1rem; }
+        
+        @keyframes slideIn { from {opacity: 0; transform: translateX(-10px);} to {opacity: 1; transform: translateX(0);} }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="session-pnl">Bitácora de Operaciones</div>
-        <div class="pnl-val" id="totalPnL">$0.00</div>
+        <div class="goals-grid">
+            <div class="goal-item">
+                <label>META DIARIA (TP)</label>
+                <input type="number" id="dailyTP" placeholder="0.00" onchange="saveGoals()">
+            </div>
+            <div class="goal-item">
+                <label>MÁX. PÉRDIDA (SL)</label>
+                <input type="number" id="dailySL" placeholder="0.00" onchange="saveGoals()">
+            </div>
+        </div>
+        <div class="main-balance">
+            <div class="balance-label">PROFIT SESIÓN ACTUAL</div>
+            <div class="balance-val" id="sessionBalance">$0.00</div>
+        </div>
     </header>
 
-    <div class="history" id="history">
-        <div style="text-align:center; color: var(--text-dim); margin-top: 50px;">
-            <p>Listo para la sesión de hoy</p>
-        </div>
+    <div class="history" id="historyList">
+        <p style="text-align:center; color: var(--text-dim); margin-top: 50px;">Esperando primera operación...</p>
     </div>
 
-    <button class="fab" onclick="openModal()"><i class="fas fa-plus"></i></button>
+    <button class="fab" onclick="document.getElementById('entryModal').style.display='flex'">
+        <i class="fas fa-plus"></i>
+    </button>
 
-    <div class="modal-overlay" id="modal">
+    <div class="modal" id="entryModal">
         <div class="modal-content">
-            <h2 style="margin-top:0; color:var(--primary)">Registrar Trade</h2>
-            <input type="text" id="activo" placeholder="ACTIVO (C500, B1000...)">
-            <input type="number" id="monto" placeholder="MONTO $ (Profit o Loss)">
+            <h2 style="margin:0 0 20px 0; color:var(--primary); text-align:center;">Registrar Entrada</h2>
+            <input type="text" id="activo" placeholder="ACTIVO (Boom, Crash, V75...)">
+            <input type="number" id="monto" placeholder="RESULTADO $ (+ o -)">
+            <textarea id="nota" rows="3" placeholder="Análisis rápido o dictado..."></textarea>
             
-            <button class="btn-voice" id="btnMic" onclick="startVoice()">
-                <i class="fas fa-microphone"></i> DICTAR ANÁLISIS
-            </button>
-            <textarea id="nota" rows="3" placeholder="Notas del trade..."></textarea>
-            
-            <button class="btn-save" id="btnSave" onclick="saveData()">
-                GUARDAR EN GOOGLE SHEETS
-            </button>
-            <button onclick="closeModal()" style="background:none; border:none; color:var(--text-dim); width:100%; margin-top:10px;">Cerrar</button>
+            <button class="btn-save" id="saveBtn" onclick="executeTrade()">GUARDAR Y CERRAR</button>
+            <button onclick="document.getElementById('entryModal').style.display='none'" style="background:none; border:none; color:var(--text-dim); width:100%; margin-top:15px; cursor:pointer;">Regresar</button>
         </div>
     </div>
 
     <script>
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzcGxvI4QVXUYVwzVTbBw8MsKOwyqc4qBSUeT0KbVyGniBBfbw9vBG40IncT81fFY269Q/exec';
-        
-        let recognition;
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.lang = 'es-ES';
-            recognition.onresult = (e) => { document.getElementById('nota').value += e.results[0][0].transcript; };
-            recognition.onstart = () => { document.getElementById('btnMic').classList.add('listening'); };
-            recognition.onend = () => { document.getElementById('btnMic').classList.remove('listening'); };
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzq1ss55UaAMiXT4L-i9zrIv7sxlez1bkU5vLNR9rmapyJEamojSDjUmFOYme4-034Znw/exec';
+        let totalProfit = 0;
+
+        // Cargar metas al iniciar
+        window.onload = () => {
+            document.getElementById('dailyTP').value = localStorage.getItem('tp') || "";
+            document.getElementById('dailySL').value = localStorage.getItem('sl') || "";
+        };
+
+        function saveGoals() {
+            localStorage.setItem('tp', document.getElementById('dailyTP').value);
+            localStorage.setItem('sl', document.getElementById('dailySL').value);
+            checkGoals();
         }
 
-        function openModal() { document.getElementById('modal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('modal').style.display = 'none'; }
-        function startVoice() { if(recognition) recognition.start(); }
-
-        async function saveData() {
-            const btn = document.getElementById('btnSave');
-            const activo = document.getElementById('activo').value;
+        async function executeTrade() {
+            const btn = document.getElementById('saveBtn');
             const monto = parseFloat(document.getElementById('monto').value) || 0;
-            const nota = document.getElementById('nota').value;
+            const activo = document.getElementById('activo').value || "Sintético";
 
-            btn.disabled = true;
-            btn.innerText = "ENVIANDO...";
+            btn.disabled = true; btn.innerText = "SINCRO...";
 
             const payload = {
                 timestamp: new Date().toLocaleString(),
                 activo: activo,
                 resultado: monto,
-                nota: nota,
-                acumulado: "" 
+                nota: document.getElementById('nota').value
             };
 
             try {
-                await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(payload)
-                });
-
-                addToLocalHistory(activo, monto, nota);
-                alert("Guardado correctamente");
-                closeModal();
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                
+                // Actualizar UI
+                totalProfit += monto;
+                updateHistory(activo, monto);
+                checkGoals();
+                
+                // REGRESO AUTOMÁTICO
+                document.getElementById('entryModal').style.display = 'none';
                 document.getElementById('activo').value = "";
                 document.getElementById('monto').value = "";
                 document.getElementById('nota').value = "";
-            } catch (e) {
-                alert("Error de red");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "GUARDAR EN GOOGLE SHEETS";
-            }
+            } catch (e) { alert("Error de conexión"); }
+            finally { btn.disabled = false; btn.innerText = "GUARDAR Y CERRAR"; }
         }
 
-        function addToLocalHistory(asset, val, note) {
-            const container = document.getElementById('history');
-            if (container.innerHTML.includes("Listo para")) container.innerHTML = '';
+        function updateHistory(asset, val) {
+            const display = document.getElementById('sessionBalance');
+            display.innerText = `$${totalProfit.toFixed(2)}`;
+            
+            const list = document.getElementById('historyList');
+            if(list.innerHTML.includes("Esperando")) list.innerHTML = '';
             
             const card = document.createElement('div');
             card.className = 'trade-card';
             card.innerHTML = `
-                <div class="trade-info">
-                    <h4>${asset}</h4>
-                    <p>${note.substring(0, 40)}...</p>
-                </div>
-                <div class="trade-res" style="color: ${val >= 0 ? 'var(--green)' : 'var(--red)'}">
-                    ${val >= 0 ? '+' : ''}${val.toFixed(2)}
-                </div>
+                <div><h4>${asset}</h4><p>${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p></div>
+                <div style="font-weight:bold; color:${val>=0?'var(--green)':'var(--red)'}">${val>=0?'+':''}${val.toFixed(2)}</div>
             `;
-            container.prepend(card);
+            list.prepend(card);
+        }
+
+        function checkGoals() {
+            const display = document.getElementById('sessionBalance');
+            const tp = parseFloat(document.getElementById('dailyTP').value);
+            const sl = parseFloat(document.getElementById('dailySL').value);
+
+            if (tp && totalProfit >= tp) display.style.color = 'var(--green)';
+            else if (sl && totalProfit <= (sl * -1)) display.style.color = 'var(--red)';
+            else display.style.color = 'white';
         }
     </script>
 </body>
