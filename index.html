@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Trading Journal Elite</title>
+    <title>Trading Journal Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --bg: #0b0e11; --card: #1e2329; --primary: #f0b90b; --green: #0ecb81; --red: #f6465d; --text: #eaecef; --text-dim: #848e9c; }
         body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
 
-        /* --- HEADER: METAS DIARIAS --- */
         header { padding: 20px; background: var(--card); border-bottom: 1px solid #333; }
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .goal-item { background: #2b3139; padding: 8px; border-radius: 8px; text-align: center; }
@@ -18,49 +20,35 @@
         
         .main-balance { text-align: center; padding: 10px 0; }
         .balance-label { font-size: 0.8rem; color: var(--text-dim); letter-spacing: 1px; }
-        .balance-val { font-size: 2.8rem; font-weight: bold; margin-top: 5px; }
+        .balance-val { font-size: 3.5rem; font-weight: bold; margin-top: 5px; }
 
-        /* --- LISTA DE RESULTADOS --- */
-        .history { height: calc(100vh - 220px); overflow-y: auto; padding: 15px; }
+        .history { height: calc(100vh - 250px); overflow-y: auto; padding: 15px; }
         .trade-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
         .trade-card h4 { margin: 0; font-size: 0.95rem; color: var(--primary); text-transform: uppercase; }
 
-        /* --- MODALES Y ALARMAS --- */
         .modal, .alarm-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; }
         .modal { background: rgba(0,0,0,0.95); align-items: flex-end; }
         .modal-content { background: var(--card); width: 100%; padding: 30px; border-radius: 25px 25px 0 0; box-sizing: border-box; }
         
-        /* Estilo Alarma */
-        .alarm-overlay { 
-            background: rgba(246, 70, 93, 0.95); /* Rojo por defecto */
-            flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;
-        }
+        .alarm-overlay { background: rgba(246, 70, 93, 0.95); flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         .alarm-overlay.win { background: rgba(14, 203, 129, 0.95); }
-        .alarm-title { font-size: 3rem; font-weight: bold; margin: 10px 0; }
         
-        select, input, textarea { width: 100%; background: #2b3139; border: 1px solid #444; color: white; padding: 14px; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; font-size: 1rem; }
+        select, input, textarea { width: 100%; background: #2b3139; border: 1px solid #444; color: white; padding: 14px; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; font-size: 1rem; outline: none; }
+        .btn-mic { background: transparent; border: 1px solid var(--primary); color: var(--primary); width: 100%; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-weight: bold; }
         .btn-save { background: var(--primary); color: black; width: 100%; padding: 18px; border-radius: 12px; border: none; font-weight: bold; font-size: 1.1rem; }
         .fab { position: fixed; bottom: 30px; right: 25px; background: var(--primary); width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 10; }
-        
-        .btn-stop { background: white; color: black; padding: 15px 40px; border-radius: 30px; border: none; font-weight: bold; margin-top: 20px; font-size: 1.2rem; cursor: pointer; }
+        .listening { animation: pulse 1s infinite; border-color: var(--red); color: var(--red); }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
-    <audio id="alarmAudio" loop>
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="alarmAudio" loop><source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg"></audio>
 
     <header>
         <div class="goals-grid">
-            <div class="goal-item">
-                <label>META DIARIA (TP)</label>
-                <input type="number" id="dailyTP" placeholder="0.00" onchange="saveGoals()">
-            </div>
-            <div class="goal-item">
-                <label>LÍMITE PÉRDIDA (SL)</label>
-                <input type="number" id="dailySL" placeholder="0.00" onchange="saveGoals()">
-            </div>
+            <div class="goal-item"><label>META DIARIA (TP)</label><input type="number" id="dailyTP" onchange="saveGoals()"></div>
+            <div class="goal-item"><label>MÁX. PÉRDIDA (SL)</label><input type="number" id="dailySL" onchange="saveGoals()"></div>
         </div>
         <div class="main-balance">
             <div class="balance-label">PROFIT SESIÓN</div>
@@ -68,44 +56,41 @@
         </div>
     </header>
 
-    <div class="history" id="historyList">
-        <p style="text-align:center; color: var(--text-dim); margin-top: 50px;">Esperando registro...</p>
-    </div>
+    <div class="history" id="historyList"></div>
 
-    <button class="fab" onclick="document.getElementById('entryModal').style.display='flex'">
-        <i class="fas fa-plus"></i>
-    </button>
+    <button class="fab" onclick="document.getElementById('entryModal').style.display='flex'"><i class="fas fa-plus"></i></button>
 
     <div class="alarm-overlay" id="alarmScreen">
         <i class="fas fa-hand-paper" style="font-size: 5rem;"></i>
-        <div class="alarm-title">STOP OPERATIVA</div>
-        <p id="alarmMessage" style="font-size: 1.2rem;">Límite de riesgo alcanzado</p>
-        <button class="btn-stop" onclick="stopAlarm()">ENTENDIDO</button>
+        <h1 style="font-size: 2.5rem;">STOP OPERATIVA</h1>
+        <p id="alarmMessage"></p>
+        <button onclick="stopAlarm()" style="background:white; padding:15px 40px; border-radius:30px; border:none; font-weight:bold; margin-top:20px;">ENTENDIDO</button>
     </div>
 
     <div class="modal" id="entryModal">
         <div class="modal-content">
-            <h2 style="margin:0 0 20px 0; color:var(--primary); text-align:center;">Registrar Trade</h2>
             <select id="activo">
                 <option value="" disabled selected>SELECCIONA ACTIVO</option>
-                <optgroup label="BOOM"><option value="BOOM 300">BOOM 300</option><option value="BOOM 500">BOOM 500</option><option value="BOOM 1000">BOOM 1000</option></optgroup>
-                <optgroup label="CRASH"><option value="CRASH 300">CRASH 300</option><option value="CRASH 500">CRASH 500</option><option value="CRASH 1000">CRASH 1000</option></optgroup>
+                <optgroup label="BOOM"><option>BOOM 300</option><option>BOOM 500</option><option>BOOM 1000</option></optgroup>
+                <optgroup label="CRASH"><option>CRASH 300</option><option>CRASH 500</option><option>CRASH 1000</option></optgroup>
             </select>
             <input type="number" id="monto" placeholder="Resultado $">
-            <textarea id="nota" rows="2" placeholder="Notas..."></textarea>
+            <button class="btn-mic" id="btnMic" onclick="startVoice()"><i class="fas fa-microphone"></i> DICTAR NOTAS</button>
+            <textarea id="nota" rows="3" placeholder="Comentarios..."></textarea>
             <button class="btn-save" id="saveBtn" onclick="executeTrade()">GUARDAR Y REVISAR</button>
-            <button onclick="document.getElementById('entryModal').style.display='none'" style="background:none; border:none; color:var(--text-dim); width:100%; margin-top:15px;">Regresar</button>
+            <button onclick="document.getElementById('entryModal').style.display='none'" style="background:none; border:none; color:var(--text-dim); width:100%; margin-top:15px;">Cerrar</button>
         </div>
     </div>
 
     <script>
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby0jfHT9i-HVGwfMl-C9ysoxOXXkwWq_cyUj-SeN2RgxW-cNmzI-4rOX93stdfrPczh/exec';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzq1ss55UaAMiXT4L-i9zrIv7sxlez1bkU5vLNR9rmapyJEamojSDjUmFOYme4-034Znw/exec';
         let totalProfit = 0;
         const alarmSound = document.getElementById('alarmAudio');
 
         window.onload = () => {
             document.getElementById('dailyTP').value = localStorage.getItem('tp') || "";
             document.getElementById('dailySL').value = localStorage.getItem('sl') || "";
+            if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
         };
 
         function saveGoals() {
@@ -114,25 +99,34 @@
             checkGoals();
         }
 
+        let recognition;
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.lang = 'es-ES';
+            recognition.onresult = (e) => { document.getElementById('nota').value += e.results[0][0].transcript; };
+            recognition.onstart = () => document.getElementById('btnMic').classList.add('listening');
+            recognition.onend = () => document.getElementById('btnMic').classList.remove('listening');
+        }
+        function startVoice() { if(recognition) recognition.start(); }
+
         async function executeTrade() {
             const btn = document.getElementById('saveBtn');
             const monto = parseFloat(document.getElementById('monto').value) || 0;
             const activo = document.getElementById('activo').value;
-
             if(!activo) return alert("Selecciona activo");
             btn.disabled = true;
 
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({
                     timestamp: new Date().toLocaleString(),
-                    activo: activo, resultado: monto, nota: document.getElementById('nota').value, acumulado: ""
+                    activo: activo, resultado: monto, nota: document.getElementById('nota').value
                 })});
-                
                 totalProfit += monto;
                 updateHistory(activo, monto);
-                checkGoals(); // Verificamos si la nueva operación dispara la alarma
+                checkGoals();
                 document.getElementById('entryModal').style.display = 'none';
                 document.getElementById('monto').value = "";
+                document.getElementById('nota').value = "";
             } catch (e) { alert("Error"); }
             finally { btn.disabled = false; }
         }
@@ -141,9 +135,7 @@
             const display = document.getElementById('sessionBalance');
             display.innerText = `$${totalProfit.toFixed(2)}`;
             display.style.color = totalProfit >= 0 ? 'var(--green)' : 'var(--red)';
-            
             const list = document.getElementById('historyList');
-            if(list.innerHTML.includes("Esperando")) list.innerHTML = '';
             const card = document.createElement('div');
             card.className = 'trade-card';
             card.innerHTML = `<div><h4>${asset}</h4><p>${new Date().toLocaleTimeString()}</p></div><div style="font-weight:bold; color:${val>=0?'var(--green)':'var(--red)'}">${val>=0?'+':''}${val.toFixed(2)}</div>`;
@@ -153,15 +145,8 @@
         function checkGoals() {
             const tp = parseFloat(document.getElementById('dailyTP').value);
             const sl = parseFloat(document.getElementById('dailySL').value);
-
-            // Alarma de Meta (Profit)
-            if (tp && totalProfit >= tp) {
-                triggerAlarm(true, `¡Meta de $${tp} alcanzada!`);
-            } 
-            // Alarma de Pérdida (Loss)
-            else if (sl && totalProfit <= (sl * -1)) {
-                triggerAlarm(false, `¡Límite de pérdida de $${sl} tocado!`);
-            }
+            if (tp && totalProfit >= tp) triggerAlarm(true, `Meta de $${tp} alcanzada`);
+            else if (sl && totalProfit <= (sl * -1)) triggerAlarm(false, `Límite de pérdida de $${sl} tocado`);
         }
 
         function triggerAlarm(isWin, msg) {
@@ -170,7 +155,6 @@
             screen.style.display = 'flex';
             if(isWin) screen.classList.add('win');
             else screen.classList.remove('win');
-            
             alarmSound.play();
         }
 
