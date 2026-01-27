@@ -3,38 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Trading Elite v6</title>
-    <link rel="manifest" href="manifest.json?v=6">
+    <title>Trading Journal Elite v7</title>
+    <link rel="manifest" href="manifest.json?v=7">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --bg: #0b0e11; --card: #1e2329; --text: #eaecef; --text-dim: #848e9c; --green: #0ecb81; --red: #f6465d; --primary: #f0b90b; }
         body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
         header { padding: 15px 20px; background: var(--card); border-bottom: 1px solid #333; }
-        
         .user-selector { margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; background: #2b3139; padding: 12px; border-radius: 12px; border: 1px solid #444; }
         .user-selector select { background: transparent; border: none; color: var(--primary); font-weight: bold; font-size: 1.1rem; outline: none; cursor: pointer; text-transform: uppercase; }
-
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .goal-item { background: #2b3139; padding: 8px; border-radius: 8px; text-align: center; }
         .goal-item label { font-size: 0.65rem; color: var(--text-dim); display: block; margin-bottom: 3px; }
         .goal-item input { background: transparent; border: none; color: white; width: 80%; text-align: center; font-weight: bold; font-size: 1rem; outline: none; }
-        
         .main-balance { text-align: center; padding: 5px 0; }
-        .balance-val { font-size: 3.8rem; font-weight: bold; margin-top: 5px; }
-
+        .balance-val { font-size: 3.5rem; font-weight: bold; margin-top: 5px; }
         .history { height: calc(100vh - 310px); overflow-y: auto; padding: 15px; }
         .trade-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
-        
-        .btn-delete { color: var(--text-dim); padding: 10px; cursor: pointer; transition: color 0.2s; }
-        .btn-delete:active { color: var(--red); }
-
+        .btn-delete { color: #555; font-size: 1.2rem; cursor: pointer; padding-left: 15px; }
         .modal, .alarm-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; }
         .modal { background: rgba(0,0,0,0.95); align-items: flex-end; }
         .modal-content { background: var(--card); width: 100%; padding: 30px; border-radius: 25px 25px 0 0; box-sizing: border-box; }
-        
-        .alarm-overlay { background: rgba(246, 70, 93, 0.95); flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; }
+        .alarm-overlay { background: rgba(246, 70, 93, 0.95); flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         .alarm-overlay.win { background: rgba(14, 203, 129, 0.95); }
-
         select, input, textarea { width: 100%; background: #2b3139; border: 1px solid #444; color: white; padding: 14px; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; font-size: 1rem; outline: none; }
         .btn-save { background: var(--primary); color: black; width: 100%; padding: 18px; border-radius: 12px; border: none; font-weight: bold; font-size: 1.2rem; }
         .fab { position: fixed; bottom: 30px; right: 25px; background: var(--primary); color: #000; width: 65px; height: 65px; border-radius: 50%; border: none; font-size: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
@@ -46,16 +37,16 @@
 
     <header>
         <div class="user-selector">
-            <span style="font-size: 0.8rem; color: var(--text-dim);">TRADER:</span>
+            <span>TRADER:</span>
             <select id="userProfile" onchange="switchUser()">
                 <option value="eliezer">ELIEZER</option>
                 <option value="mary">MARY</option>
             </select>
-            <i class="fas fa-user-shield" style="color: var(--primary);"></i>
+            <i class="fas fa-sync-alt" id="syncIcon" style="color: var(--primary);"></i>
         </div>
         <div class="goals-grid">
-            <div class="goal-item"><label>META (TP)</label><input type="number" id="dailyTP" placeholder="0.00" onchange="updateGoals()"></div>
-            <div class="goal-item"><label>RIESGO (SL)</label><input type="number" id="dailySL" placeholder="0.00" onchange="updateGoals()"></div>
+            <div class="goal-item"><label>META (TP)</label><input type="number" id="dailyTP" onchange="updateGoals()"></div>
+            <div class="goal-item"><label>RIESGO (SL)</label><input type="number" id="dailySL" onchange="updateGoals()"></div>
         </div>
         <div class="main-balance"><div class="balance-val" id="sessionBalance">$0.00</div></div>
     </header>
@@ -64,35 +55,26 @@
     <button class="fab" onclick="document.getElementById('entryModal').style.display='flex'"><i class="fas fa-plus"></i></button>
 
     <div class="alarm-overlay" id="alarmScreen">
-        <i class="fas fa-hand-paper" style="font-size: 5rem; margin-bottom: 20px;"></i>
-        <h1 style="font-size: 2.5rem; margin: 0;">STOP OPERATIVA</h1>
-        <p id="alarmMessage" style="font-size: 1.2rem; margin: 15px;"></p>
-        <button onclick="stopAlarm()" style="background:white; padding:15px 50px; border-radius:30px; border:none; font-weight:bold; margin-top:20px; color: black;">ENTENDIDO</button>
+        <h1 style="font-size: 2.5rem;">ALERTA DE PLAN</h1>
+        <p id="alarmMessage" style="font-size: 1.2rem;"></p>
+        <button onclick="stopAlarm()" style="background:white; padding:15px 50px; border-radius:30px; border:none; font-weight:bold; margin-top:20px;">CERRAR</button>
     </div>
 
     <div class="modal" id="entryModal">
         <div class="modal-content">
             <select id="activo">
-                <option value="" disabled selected>SELECCIONA ÍNDICE</option>
+                <option value="" disabled selected>ELEGIR ÍNDICE</option>
                 <optgroup label="BOOM">
-                    <option value="BOOM 150">BOOM 150</option>
-                    <option value="BOOM 300">BOOM 300</option>
-                    <option value="BOOM 500">BOOM 500</option>
-                    <option value="BOOM 600">BOOM 600</option>
-                    <option value="BOOM 900">BOOM 900</option>
-                    <option value="BOOM 1000">BOOM 1000</option>
+                    <option>BOOM 150</option><option>BOOM 300</option><option>BOOM 500</option>
+                    <option>BOOM 600</option><option>BOOM 900</option><option>BOOM 1000</option>
                 </optgroup>
                 <optgroup label="CRASH">
-                    <option value="CRASH 150">CRASH 150</option>
-                    <option value="CRASH 300">CRASH 300</option>
-                    <option value="CRASH 500">CRASH 500</option>
-                    <option value="CRASH 600">CRASH 600</option>
-                    <option value="CRASH 900">CRASH 900</option>
-                    <option value="CRASH 1000">CRASH 1000</option>
+                    <option>CRASH 150</option><option>CRASH 300</option><option>CRASH 500</option>
+                    <option>CRASH 600</option><option>CRASH 900</option><option>CRASH 1000</option>
                 </optgroup>
             </select>
             <input type="number" id="monto" placeholder="Resultado $">
-            <textarea id="nota" rows="3" placeholder="Notas/Dictado..."></textarea>
+            <textarea id="nota" rows="2" placeholder="Notas..."></textarea>
             <button class="btn-save" id="saveBtn" onclick="saveTrade()">GUARDAR REGISTRO</button>
             <button onclick="document.getElementById('entryModal').style.display='none'" style="background:none; border:none; color:var(--text-dim); width:100%; margin-top:15px;">CANCELAR</button>
         </div>
@@ -100,8 +82,8 @@
 
     <script>
         const CONFIG = {
-            eliezer: { url: 'https://script.google.com/macros/s/AKfycbxxiR4Vn83RiEbDId1DqPG8U-7LycV-2s2IshBUR7J7P4f6PaJGp_4q7JVxF613aBrS/exec', color: '#f0b90b' },
-            mary: { url: 'https://script.google.com/macros/s/AKfycbw7sTzPjcqswsz_lVKruK6iPUSyPLyYqPPM8VypNhLpi6UmVLba5C-d-3YbJqqWu81v9Q/exec', color: '#bb86fc' }
+            eliezer: { url: 'https://script.google.com/macros/s/AKfycbyZc2UKWJYHsb8_7UweaHSqu_8tchpNXjuvtT0q9ir-ya8TgMrLzTfluKBaLbNmKn8/exec', color: '#f0b90b' },
+            mary: { url: 'https://script.google.com/macros/s/AKfycbzJGIygn12i29WNSLzyoiL11saz_6kR4hvatPLzQZH6T2jfdIVJn216d-opxjnCpZFDnw/exec', color: '#bb86fc' }
         };
 
         let activeUser = 'eliezer';
@@ -112,18 +94,6 @@
             activeUser = localStorage.getItem('lastUser') || 'eliezer';
             document.getElementById('userProfile').value = activeUser;
             switchUser(false);
-            if ('serviceWorker' in navigator) { 
-                navigator.serviceWorker.register('sw.js?v=6').then(reg => {
-                    reg.onupdatefound = () => {
-                        const installingWorker = reg.installing;
-                        installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                location.reload();
-                            }
-                        };
-                    };
-                });
-            }
         };
 
         function switchUser(showMsg = true) {
@@ -135,7 +105,7 @@
             sessionProfit = 0;
             updateUI();
             document.getElementById('historyList').innerHTML = '';
-            if(showMsg) alert("Cuenta de " + activeUser.toUpperCase() + " activada.");
+            if(showMsg) alert("Perfil de " + activeUser.toUpperCase() + " cargado.");
         }
 
         function updateGoals() {
@@ -148,44 +118,39 @@
             const btn = document.getElementById('saveBtn');
             const monto = parseFloat(document.getElementById('monto').value) || 0;
             const activo = document.getElementById('activo').value;
-            if(!activo) return alert("Selecciona un índice");
+            if(!activo) return alert("Selecciona activo");
             
             const ts = new Date().toLocaleString();
-            btn.disabled = true; btn.innerText = "SINCRO...";
+            btn.disabled = true;
 
             try {
-                await fetch(CONFIG[activeUser].url, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify({ 
-                        action: "save", 
-                        timestamp: ts, 
-                        activo: activo, 
-                        resultado: monto, 
-                        nota: document.getElementById('nota').value 
-                    })
+                await fetch(CONFIG[activeUser].url, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({ action: "save", timestamp: ts, activo: activo, resultado: monto, nota: document.getElementById('nota').value })
                 });
+
                 sessionProfit += monto;
                 updateHistory(activo, monto, ts);
                 checkRisk();
                 document.getElementById('entryModal').style.display = 'none';
                 document.getElementById('monto').value = "";
-                document.getElementById('nota').value = "";
-            } catch (e) { alert("Error de conexión"); }
-            finally { btn.disabled = false; btn.innerText = "GUARDAR REGISTRO"; }
+            } catch (e) { alert("Error de red"); }
+            finally { btn.disabled = false; }
         }
 
         async function deleteTrade(asset, val, ts, cardElement) {
-            if(!confirm(`¿Borrar registro de ${asset} ($${val})?`)) return;
+            if(!confirm(`¿Borrar registro de ${asset} de Google Sheets?`)) return;
+            
+            sessionProfit -= val;
+            updateUI();
+            cardElement.remove();
+
             try {
-                fetch(CONFIG[activeUser].url, {
+                await fetch(CONFIG[activeUser].url, {
                     method: 'POST', mode: 'no-cors',
                     body: JSON.stringify({ action: "delete", timestamp: ts })
                 });
-                sessionProfit -= val;
-                updateUI();
-                cardElement.remove();
-            } catch (e) { alert("Error al borrar"); }
+            } catch (e) { alert("Borrado del cel, pero falló sincronización con Google."); }
         }
 
         function updateUI() {
@@ -201,7 +166,7 @@
             card.className = 'trade-card';
             card.innerHTML = `
                 <div style="flex:1"><h4>${asset}</h4><p>${ts.split(',')[1]}</p></div>
-                <div style="font-weight:bold; color:${val>=0?'var(--green)':'var(--red)'}; margin-right: 15px;">${val>=0?'+':''}${val.toFixed(2)}</div>
+                <div style="font-weight:bold; color:${val>=0?'var(--green)':'var(--red)'}">${val>=0?'+':''}${val.toFixed(2)}</div>
                 <i class="fas fa-trash-alt btn-delete" onclick="deleteTrade('${asset}', ${val}, '${ts}', this.parentElement)"></i>
             `;
             list.prepend(card);
@@ -210,8 +175,8 @@
         function checkRisk() {
             const tp = parseFloat(document.getElementById('dailyTP').value);
             const sl = parseFloat(document.getElementById('dailySL').value);
-            if (tp && sessionProfit >= tp) triggerAlarm(true, "META DIARIA ALCANZADA");
-            else if (sl && sessionProfit <= (sl * -1)) triggerAlarm(false, "LÍMITE DE PÉRDIDA ALCANZADO");
+            if (tp && sessionProfit >= tp) triggerAlarm(true, "Plan de ganancias cumplido");
+            else if (sl && sessionProfit <= (sl * -1)) triggerAlarm(false, "Límite de riesgo alcanzado");
         }
 
         function triggerAlarm(isWin, msg) {
